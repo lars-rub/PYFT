@@ -2,10 +2,10 @@
 
 Welcome to the GPU accelerated CEDAR prototype PYnamicFieldTheory (PYFT)!
 
-## How to run this
+## Quick Start
 
 1. Insert your root path (folder that contains run_config.json) at the top of util.py, or leave it empty if you plan to run the main script from the root path
-2. Run main.py
+2. Run `python pynfit.py architectures/<your_architecture>.py`
 
 ## Beware
 

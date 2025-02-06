@@ -1,11 +1,12 @@
-from Architecture import Architecture
+from src.Architecture import Architecture
 import json
+import os
 
-from steps.GaussInput import GaussInput
-from steps.StaticGain import StaticGain
-from steps.NeuralField import NeuralField
-from AbsSigmoid import AbsSigmoid
-from GaussKernel import GaussKernel
+from src.steps.GaussInput import GaussInput
+from src.steps.StaticGain import StaticGain
+from src.steps.NeuralField import NeuralField
+from src.AbsSigmoid import AbsSigmoid
+from src.GaussKernel import GaussKernel
 
 
 # TODO this creates lists for all keys, even if they are not duplicates. This is not a problem, but could be optimized
@@ -19,7 +20,16 @@ def _array_on_duplicate_keys(ordered_pairs):
            d[k] = [v]
     return d
 
-def import_file(file_path):
+def _import_py_file(file_path, args):
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("arch", file_path)
+    arch_module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(arch_module)
+    get_architecture = arch_module.get_architecture
+    arch = get_architecture(args)
+    return arch
+
+def _import_json_file(file_path):
     with open(file_path, 'r') as file:
         data = json.load(file, object_pairs_hook=_array_on_duplicate_keys)
     steps= data["steps"][0]
@@ -38,7 +48,7 @@ def import_file(file_path):
                 nf = NeuralField(step_elem["name"][0], {"resting_level": float(step_elem["resting level"][0]), 
                             "global_inhibition": float(step_elem["global inhibition"][0]), "tau": float(step_elem["time scale"][0]) / 1000, 
                             "input_noise_gain": float(step_elem["input noise gain"][0]), "sigmoid": AbsSigmoid(float(step_elem["sigmoid"][0]["beta"][0]), float(step_elem["sigmoid"][0]["threshold"][0])),
-                            "lateral_kernel_convolution": GaussKernel({"shape": [15, 15], "sigma": float(step_elem["lateral kernels"][0]["cedar.aux.kernel.Gauss"][0]["sigmas"][0][0]), 
+                            "lateral_kernel_convolution": GaussKernel({"sigma": float(step_elem["lateral kernels"][0]["cedar.aux.kernel.Gauss"][0]["sigmas"][0][0]), 
                             "amplitude": 0.018116}), "shape": [int(size) for size in step_elem["sizes"][0]]}) # float(step_elem["lateral kernels"][0]["cedar.aux.kernel.Gauss"][0]["amplitude"][0])
                 arch.add_element(nf)
             else:
@@ -48,3 +58,13 @@ def import_file(file_path):
         arch.connect_to(connection["source"][0].split(".")[0], connection["target"][0].split(".")[0])
 
     return arch
+
+def import_file(file_path, args):
+    ext = os.path.splitext(file_path)[1]
+    if ext == ".json":
+        return _import_json_file(file_path)
+    elif ext == ".py":
+        return _import_py_file(file_path, args)
+    else:
+        raise Exception(f"File extension {ext} not supported")
+    

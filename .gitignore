@@ -3,3 +3,9 @@ __pycache__/*
 
 _tm_config/*
 .vscode/*
+output/*
+jax_cache/*
+pynfit_todo
+ini
+architectures/bak/*
+architectures/*.json

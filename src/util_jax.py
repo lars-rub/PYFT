@@ -1,11 +1,9 @@
-ROOT_FOLDER = ""
 use_multiple_devices = False
 
 import os
-if not os.path.exists(os.path.join(ROOT_FOLDER, "run_config.json")):
-    raise Exception(f"No run_config found in root folder {ROOT_FOLDER}. Please specify the correct path in the first line of util.py")
-
+from src import util
 if use_multiple_devices:
+    raise Exception("util must be imported before jax in main")
     os.environ["XLA_FLAGS"] = '--xla_force_host_platform_device_count=3'
 import json
 import numpy as np
@@ -13,7 +11,7 @@ import jax.numpy as jnp
 import jax
 
 def _load_config():
-    cfg = json.load(open(os.path.join(ROOT_FOLDER, "run_config.json"), "r"))
+    cfg = json.load(open(os.path.join(util.root(), "run_config.json"), "r"))
 
     # Parse dtype
     unsupported_dtypes = ["float64"]
@@ -25,16 +23,21 @@ def _load_config():
         cfg["jdtype"] = jnp.dtype(dtype_str).type
     return cfg
 
-cfg = _load_config()
+_cfg_instance = None
+
+def get_config():
+    global _cfg_instance
+    if _cfg_instance is None:
+        _cfg_instance = _load_config()
+    return _cfg_instance
+
+cfg = get_config()
 
 if cfg['debug']:
     jax_prng_key = jax.random.key(42)
     np.random.seed(42)
 else:
     jax_prng_key = jax.random.key(np.random.randint(0, 2**16))
-
-def root():
-    return ROOT_FOLDER
 
 def next_random_key():
     global jax_prng_key
@@ -57,9 +60,6 @@ def next_random_keys(num):
 #     pre_generated_keys = pre_generated_keys[num:]
 #     return keys
 
-def prettify(l):
-    return f'{np.mean(l):.5f} +- {np.std(l):.5f}  (min: {np.min(l)})'
-
 def zeros(shape, device_idx=0):
     mat = jnp.zeros(shape, dtype=cfg["jdtype"])
     if device_idx != 0:
@@ -80,15 +80,3 @@ def next_gpu():
     gpu_idx += 1
     gpu_idx %= len(jax.local_devices())
     return gpu_idx
-
-
-## --- Exceptions ---
-
-class ArchitectureNotCompiledException(Exception):
-    def __init__(self):
-        super().__init__("Architecture needs to be compiled to perform this operation")
-
-
-class ArchitectureCompiledException(Exception):
-    def __init__(self):
-        super().__init__("Architecture is already compiled, cannot perform this operation")

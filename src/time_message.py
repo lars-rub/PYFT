@@ -4,7 +4,7 @@ import atexit
 import pickle
 import os
 import hashlib
-import util
+from src import util
 
 use_previous_session_information = False # Used to add percentage information to tprint output
 

@@ -1,5 +1,5 @@
 {
     "dtype": "float32",
     "delta_t": 0.02,
-    "debug": 1
+    "debug": 0
 }

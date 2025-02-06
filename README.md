@@ -14,7 +14,6 @@ This is a prototype! So beware of the following (and more):
 - Most parameters and steps that exist in CEDAR are not supported/implemented.
 - The GaussInput is currently very restricted, i.e., only square 2D matrices with the peak being located at the center of the matrix are supported.
 - The code is not documented, commented, typed, etc.
-- I am aware that the current file/folder structure is horrible :D
 
 ## TODO
 

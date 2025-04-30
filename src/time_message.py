@@ -60,11 +60,12 @@ def tprint(label=None):
     _last_time = current_time
 
 def elapsed_time():
-    print(f"- Total runtime - {time.time() - _overall_start_time:>6.2f}s -")
+    print(f"# {time.time() - _overall_start_time:>7.3f}s - Total runtime #")
 
 def _exit_handler():
     total_time = time.time() - _overall_start_time
     if total_time <= 0 or not use_previous_session_information:
+        elapsed_time()
         return
     time_history = [(label, max(0, min(1, (ts - _overall_start_time) / total_time))) for label, ts in _tprint_time_history]
     to_save = [_original_caller, time_history]

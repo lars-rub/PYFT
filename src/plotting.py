@@ -1,14 +1,14 @@
 import os
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
 from src import util
-import matplotlib as mpl
 from matplotlib import colors
+import time
+from src.time_message import tprint
 
 def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=100):
     new_cmap = colors.LinearSegmentedColormap.from_list(
-        'trunc({n},{a:.2f},{b:.2f})'.format(n=cmap.name, a=minval, b=maxval),
+        'trunc({n},{a:.2f},{b:.2f})'.format(n=cmap.name, a=minval, b=maxval),   
         cmap(np.linspace(minval, maxval, n)))
     return new_cmap
 
@@ -24,18 +24,21 @@ def plot_history(num_ticks, history, save_plot, step_names):
     rows = rows_per_step * num_steps
 
     fig = plt.figure(figsize=(2*cols, 2*rows))
-    print()
     for step_idx in range(num_steps):
-        vmin = min([np.min(step_mats[step_idx]) for step_mats in history])
-        vmax = max([np.max(step_mats[step_idx]) for step_mats in history])
-
         ax_label = fig.add_subplot(rows, cols, (step_idx * rows_per_step) * cols + 1)
-        ax_label.text(0.5, 0.5, step_names[step_idx].replace(".", ".\n"), fontsize=12, ha='center')
+        label = step_names[step_idx]
+        if len(label) > 8:
+            label = label.replace(".", ".\n")
+        ax_label.text(0.5, 0.5, label, fontsize=12, ha='center')
         ax_label.set_axis_off()
         colorbar_displayed = False
 
-        # Print shape of first element
-        print(f"{step_names[step_idx]:<{max([len(name) for name in step_names])}}: {history[0][step_idx].shape}")
+        if not np.any([step_mats[step_idx] is not None for step_mats in history]):
+            continue
+        step_history_notna = [step_mats[step_idx] for step_mats in history if not step_mats[step_idx] is None]
+        vmin = min([np.min(mat) for mat in step_history_notna])
+        vmax = max([np.max(mat) for mat in step_history_notna])
+
         for i in range((cols - 1) * rows_per_step):
             if i >= num_ticks:
                 ax = fig.add_subplot(rows, cols, step_idx * cols + i + 2)
@@ -67,14 +70,17 @@ def plot_history(num_ticks, history, save_plot, step_names):
                 markersizes = markersize_min + 20 * data
                 markersizes = markersizes.at[markersizes < 0].set(markersize_min)
                 im = ax.scatter(*np.where(data > np.min(data) - 1), c=data, s = markersizes, vmin=vmin, vmax=vmax, cmap=cmap)
-            ax.set_title(f"t={i+1}")
+            if step_idx == 0:
+                ax.set_title(f"t={i+1}")
             if im is not None and not colorbar_displayed:
                 colorbar_displayed = True
                 fig.colorbar(im, ax=ax_label, orientation='vertical')
-    print()
     plt.tight_layout()
     if save_plot:
-        plt.savefig(os.path.join(util.root(), "output", "plot.png"))
+        folder = os.path.join(util.root(), "output")
+        os.makedirs(folder, exist_ok=True)
+        plt.savefig(os.path.join(folder, f"plot_{int(time.time())}.png"))
+        tprint("Plot done")
     else:
         plt.show()
 

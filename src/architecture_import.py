@@ -8,10 +8,9 @@ from src.steps.NeuralField import NeuralField
 from src.AbsSigmoid import AbsSigmoid
 from src.GaussKernel import GaussKernel
 
-
 # TODO this creates lists for all keys, even if they are not duplicates. This is not a problem, but could be optimized
 def _array_on_duplicate_keys(ordered_pairs):
-    """Convert duplicate keys to arrays."""
+    # Convert duplicate keys to arrays
     d = {}
     for k, v in ordered_pairs:
         if k in d:
@@ -50,6 +49,7 @@ def _import_json_file(file_path):
                             "input_noise_gain": float(step_elem["input noise gain"][0]), "sigmoid": AbsSigmoid(float(step_elem["sigmoid"][0]["beta"][0]), float(step_elem["sigmoid"][0]["threshold"][0])),
                             "lateral_kernel_convolution": GaussKernel({"sigma": float(step_elem["lateral kernels"][0]["cedar.aux.kernel.Gauss"][0]["sigmas"][0][0]), 
                             "amplitude": 0.018116}), "shape": [int(size) for size in step_elem["sizes"][0]]}) # float(step_elem["lateral kernels"][0]["cedar.aux.kernel.Gauss"][0]["amplitude"][0])
+                # TODO dont hardcode 0.018116, instead get amplitude and normalization attribute
                 arch.add_element(nf)
             else:
                 raise Exception(f"Step {step_class} not known")

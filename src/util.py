@@ -1,4 +1,6 @@
 ROOT_FOLDER = ""
+DEFAULT_INPUT_SLOT = "in0"
+DEFAULT_OUTPUT_SLOT = "out0"
 
 import os
 import numpy as np
@@ -11,6 +13,19 @@ def root():
 
 def prettify(l):
     return f'{np.mean(l):.5f} +- {np.std(l):.5f}  (min: {np.min(l)})'
+
+_architecture = None
+def set_architecture(arch):
+    global _architecture
+    if _architecture is None:
+        _architecture = arch
+    else:
+        raise Exception("Architecture already set. Did you create two architectures?")
+
+def get_architecture():
+    if _architecture is None:
+        raise Exception("No architecture was created yet.")
+    return _architecture
 
 ## --- Exceptions ---
 
